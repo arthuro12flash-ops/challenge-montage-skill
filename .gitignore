@@ -1,0 +1,16 @@
+# musique générée localement par scripts/sound/make_music.py (≈ 120 Mo)
+challenge-montage/assets/music/
+# médias et rendus de projets : ne jamais publier de rushs, de photos ni de prénoms
+*.mov
+*.mp4
+*.m4a
+A-roll/
+Exports/
+video-agent/
+**/.hyperframes/
+**/.work/
+node_modules/
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db

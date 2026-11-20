@@ -1,0 +1,48 @@
+{
+  "voice": {
+    "name": "fr-FR-RemyMultilingualNeural",
+    "rate": "+8%",
+    "tempo": 1.05,
+    "phrases": [
+      "Le Shoot Contest,",
+      "c'est simple.",
+      "On te pose une question de physique-chimie…",
+      "mais pour avoir le droit de répondre,",
+      "il faut d'abord marquer !",
+      "Panier ?",
+      "Tu réponds.",
+      "Bonne réponse :",
+      "un point.",
+      "Le premier à trois points remporte la partie.",
+      "Place aux joueurs !"
+    ],
+    "gaps": [0, 0.15, 0.24, 0.2, 0.12, 0.34, 0.26, 0.26, 0.12, 0.3, 0.3]
+  },
+  "text": {
+    "title": ["SHOOT", "CONTEST"],
+    "court": "SHOOT CONTEST",
+    "question": "QUESTION",
+    "qcardTag": "QUESTION · PHYSIQUE-CHIMIE",
+    "qcard": "Combien de planètes dans le système solaire ?",
+    "hostTag": "L'ANIMATEUR",
+    "playerTag": "LE JOUEUR",
+    "neon": "RÉPONSE",
+    "answer": "8 !",
+    "marquer": ["D'ABORD", "MARQUER !"],
+    "panier": "PANIER !",
+    "stamp": "BONNE RÉPONSE",
+    "premier": ["PREMIER À 3", "VICTOIRE"],
+    "joueurs": ["PLACE AUX", "JOUEURS"],
+    "steps": ["QUESTION", "TIR", "PANIER", "RÉPONSE", "+1"],
+    "counterLabel": "POINTS"
+  },
+  "points": 3,
+  "players": [
+    { "name": "JOUEUR 1", "color": "#f07a1a" },
+    { "name": "JOUEUR 2", "color": "#3ddffe" },
+    { "name": "JOUEUR 3", "color": "#7dc696" },
+    { "name": "JOUEUR 4", "color": "#fd3a4c" },
+    { "name": "JOUEUR 5", "color": "#fcc52e" }
+  ],
+  "musicVolume": 0.13
+}

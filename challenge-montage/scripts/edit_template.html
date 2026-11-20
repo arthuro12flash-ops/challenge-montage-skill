@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="fr" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Montserrat:wght@800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      :root { --yellow: #fcc52e; --red: #fd3a4c; --cyan: #3ddffe; --green: #7dc696; --ink: #1e1a29; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+      #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: #000; font-family: Montserrat, Arial, sans-serif; }
+      #cam { position: absolute; inset: 0; }
+      .shot { position: absolute; inset: 0; overflow: hidden; transform-origin: 50% 45%; }
+      .shot video, .shot img { position: absolute; inset: 0; width: 1080px; height: 1920px; object-fit: cover; }
+      .shot .dimmer { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.55)); }
+      .shot .blackbg { position: absolute; inset: 0; background: #000; }
+      #fx { position: absolute; inset: 0; width: 1080px; height: 1920px; pointer-events: none; }
+      #flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
+
+      /* tableau de score permanent */
+      #hud { position: absolute; left: 0; right: 0; top: 198px; display: flex; justify-content: center; gap: 8px; opacity: 0; visibility: hidden; }
+      .hp { height: 54px; display: flex; align-items: center; gap: 10px; padding: 0 8px 0 16px; border-radius: 27px; background: rgba(0,0,0,0.78);
+        border: 2px solid var(--pc); font: 800 22px/1 Montserrat, Arial, sans-serif; color: #fff; white-space: nowrap; }
+      .hp .pts { position: relative; width: 38px; height: 38px; border-radius: 50%; background: var(--pc); }
+      .hp .pts i { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font: 400 26px/1 Anton, sans-serif; font-style: normal; color: #1e1a29; opacity: 0; }
+
+      /* titres géants (recette C4) */
+      .title { position: absolute; left: 50px; right: 50px; top: 300px; text-align: center; font: 400 190px/0.98 Anton, sans-serif; text-transform: uppercase;
+        opacity: 0; visibility: hidden; transform-origin: 50% 50%; }
+      .title.two { font-size: 160px; line-height: 1.02; }
+      .title .l { display: block; color: var(--c); text-shadow: 0 0 18px color-mix(in srgb, var(--c) 55%, transparent), 0 0 48px color-mix(in srgb, var(--c) 32%, transparent), 0 6px 0 rgba(0,0,0,0.45); }
+
+      .label { position: absolute; left: 60px; top: 278px; height: 52px; padding: 0 22px 0 18px; border-radius: 26px; background: rgba(0,0,0,0.85); display: flex; align-items: center; gap: 12px;
+        font: 800 26px/1 Montserrat, Arial, sans-serif; letter-spacing: 0.04em; color: #fff; opacity: 0; visibility: hidden; transform-origin: 0 50%; }
+      .label i { width: 14px; height: 14px; border-radius: 50%; background: var(--red); box-shadow: 0 0 10px var(--red); }
+      .qcard { position: absolute; left: 70px; right: 140px; top: 350px; padding: 22px 30px 26px; border-radius: 26px; background: #fff; color: var(--ink); border: 8px solid var(--yellow);
+        box-shadow: 0 0 30px rgba(252,197,46,0.45), 0 24px 50px rgba(0,0,0,0.5); opacity: 0; visibility: hidden; transform-origin: 20% 0; }
+      .qcard .tg { display: inline-flex; align-items: center; height: 44px; padding: 0 16px; border-radius: 10px; background: var(--ink); color: var(--cyan); font: 800 24px/1 Montserrat, Arial, sans-serif; letter-spacing: 0.06em; margin-bottom: 12px; }
+      .qcard .tx { font: 800 50px/1.1 Montserrat, Arial, sans-serif; }
+      .info { position: absolute; left: 0; right: 0; margin: 0 auto; width: max-content; max-width: 900px; top: 1170px; padding: 18px 30px; border-radius: 18px; text-align: center;
+        font: 800 38px/1.15 Montserrat, Arial, sans-serif; color: #062b12; background: var(--green); box-shadow: 0 0 26px rgba(125,198,150,0.6); opacity: 0; visibility: hidden; }
+      .info.r { background: var(--red); color: #fff; box-shadow: 0 0 26px rgba(253,58,76,0.6); }
+      .wow { position: absolute; left: 0; right: 0; margin: 0 auto; width: max-content; max-width: 960px; top: 880px; padding: 10px 26px; text-align: center; font: 400 92px/1.05 Anton, sans-serif;
+        color: #fff1c8; -webkit-text-stroke: 6px #5a3a1a; paint-order: stroke fill; text-shadow: 0 8px 0 rgba(0,0,0,0.4); opacity: 0; visibility: hidden; }
+
+      /* grosse croix « contesté » */
+      .bigx { position: absolute; left: 0; right: 0; margin: 0 auto; width: 640px; height: 640px; top: 640px; opacity: 0; visibility: hidden; }
+      .bigx i { position: absolute; left: -40px; top: 270px; width: 720px; height: 100px; border-radius: 50px; background: var(--red);
+        box-shadow: 0 0 40px rgba(253,58,76,0.85), 0 0 100px rgba(253,58,76,0.5); }
+      .bigx i:first-child { transform: rotate(45deg); }
+      .bigx i:last-child { transform: rotate(-45deg); }
+      /* rembobinage façon VHS */
+      .vhs { position: absolute; left: 70px; top: 1140px; opacity: 0; visibility: hidden; color: #fff; font-family: "Courier New", monospace;
+        text-shadow: 3px 0 0 rgba(255,0,60,0.8), -3px 0 0 rgba(0,220,255,0.8), 0 0 14px rgba(0,0,0,0.8); }
+      .vhs b { display: block; font: 900 84px/1 "Courier New", monospace; letter-spacing: 2px; }
+      .vhs span { display: block; margin-top: 10px; font: 700 34px/1 "Courier New", monospace; }
+
+      /* générique de fin */
+      .credits { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; opacity: 0; visibility: hidden;
+        background: radial-gradient(ellipse at 50% 48%, rgba(252,197,46,0.10) 0%, rgba(0,0,0,0) 55%); }
+      .credits .deco { display: flex; align-items: center; gap: 22px; margin-bottom: 46px; }
+      .credits .deco svg { width: 92px; height: 92px; filter: drop-shadow(0 0 16px rgba(252,197,46,0.35)); }
+      .credits .deco span { font: 400 70px/1 Anton, sans-serif; color: var(--yellow); }
+      .credits .by { display: flex; align-items: center; gap: 22px; font: 800 40px/1 Montserrat, Arial, sans-serif; letter-spacing: 0.22em; color: rgba(255,255,255,0.8); margin-bottom: 30px; }
+      .credits .by i { width: 90px; height: 3px; background: var(--yellow); box-shadow: 0 0 12px var(--yellow); }
+      .credits .nm1, .credits .nm2 { font: 400 190px/1 Anton, sans-serif; color: var(--yellow); text-shadow: 0 0 18px rgba(252,197,46,0.55), 0 0 60px rgba(252,197,46,0.3); }
+      .credits .nm2 { font-size: 150px; color: #fff; text-shadow: 0 0 18px rgba(255,255,255,0.3); margin-top: 6px; }
+      .credits .sub { margin-top: 60px; font: 800 28px/1 Montserrat, Arial, sans-serif; letter-spacing: 0.12em; color: rgba(255,255,255,0.5); }
+
+      /* sous-titres (recette C5) */
+      .cap { position: absolute; left: 60px; right: 60px; top: 1323px; height: 94px; display: flex; justify-content: center; align-items: center; gap: 6px 10px; opacity: 0; visibility: hidden; }
+      .cap .w { display: inline-flex; align-items: center; height: 94px; padding: 0 22px; border-radius: 13px; font: 800 64px/1 Montserrat, Arial, sans-serif; text-transform: uppercase;
+        color: #fff; background-color: rgba(252,197,46,0); text-shadow: 0 4px 10px rgba(0,0,0,0.7); white-space: nowrap; }
+
+      /* carte joueur (recette C6) */
+      .card { position: absolute; left: 0; right: 0; margin: 0 auto; width: 620px; top: 330px; opacity: 0; visibility: hidden; transform-origin: 50% 50%; }
+      .card .ph { width: 620px; height: 775px; border-radius: 20px; overflow: hidden; border: 10px solid var(--pc); box-shadow: 0 0 34px color-mix(in srgb, var(--pc) 55%, transparent), 0 30px 60px rgba(0,0,0,0.55); background: #111; }
+      .card .ph img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 25%; }
+      .card .nm { position: relative; margin: -60px auto 0; width: max-content; padding: 6px 36px 12px; border-radius: 16px; background: var(--pc); color: #1e1a29;
+        font: 400 120px/1 Anton, sans-serif; text-transform: uppercase; box-shadow: 0 16px 40px rgba(0,0,0,0.5); }
+      .card.win .nm { font-size: 140px; }
+      .card .crown { margin: 18px auto 0; width: max-content; font: 400 84px/1 Anton, sans-serif; color: var(--yellow); text-shadow: 0 0 20px rgba(252,197,46,0.7), 0 0 50px rgba(252,197,46,0.4); }
+
+      .dots { position: absolute; left: 0; right: 0; top: 900px; text-align: center; font: 800 70px/1.1 Montserrat, Arial, sans-serif; color: #fff; opacity: 0; visibility: hidden; }
+      .dots span { opacity: 0; }
+      .final { position: absolute; left: 140px; right: 140px; top: 420px; padding: 36px 40px; border-radius: 30px; background: rgba(0,0,0,0.82); border: 3px solid rgba(252,197,46,0.6); opacity: 0; visibility: hidden; }
+      .final .fh { text-align: center; font: 400 96px/1 Anton, sans-serif; color: var(--yellow); margin-bottom: 22px; }
+      .final .fr { display: flex; justify-content: space-between; align-items: center; height: 78px; padding: 0 22px; margin: 10px 0; border-radius: 16px; border-left: 12px solid var(--pc); background: rgba(255,255,255,0.06);
+        font: 800 44px/1 Montserrat, Arial, sans-serif; color: #fff; }
+      .final .fr span { font: 400 60px/1 Anton, sans-serif; color: var(--pc); }
+      .final .cta { margin-top: 26px; text-align: center; font: 800 34px/1.2 Montserrat, Arial, sans-serif; color: #fff; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="__TOTAL__" data-width="1080" data-height="1920">
+      <div id="cam">
+__MEDIA__
+      </div>
+      <canvas id="fx" class="clip" data-start="0" data-duration="__TOTAL__" width="1080" height="1920"></canvas>
+      <div id="ov" class="clip" data-start="0" data-duration="__TOTAL__" style="position:absolute;inset:0;pointer-events:none">
+        <div id="hud">__HUD__</div>
+__OVERLAYS__
+      </div>
+      <div id="flash" class="clip" data-start="0" data-duration="__TOTAL__"></div>
+__AUDIO__
+    </div>
+    <script>
+      const F = 1 / 30;
+      const CONF_T = [];
+      function mulberry32(a) { return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+      const CONF = (() => { const r = mulberry32(7), cols = ["#fcc52e", "#f07a1a", "#3ddffe", "#7dc696", "#fd3a4c", "#ffffff"];
+        return Array.from({ length: 200 }, (_, i) => { const s = i % 2 ? 1 : -1; return { x0: 540 + s * (40 + r() * 140), y0: 980, vx: s * (150 + r() * 700), vy: -(1000 + r() * 1000), w: 14 + r() * 16, h: 7 + r() * 9, rot: r() * 6.28, vr: (r() - 0.5) * 18, ph: r() * 6.28, col: cols[Math.floor(r() * cols.length)] }; }); })();
+      const fxg = document.getElementById("fx").getContext("2d");
+      function drawFx(t) {
+        fxg.clearRect(0, 0, 1080, 1920);
+        for (const t0 of CONF_T) { const u = t - t0; if (u <= 0 || u > 2.6) continue;
+          for (const c of CONF) { const k = 1 - Math.exp(-u * 2.2); const x = c.x0 + (c.vx / 2.2) * k + 26 * Math.sin(u * 7 + c.ph), y = c.y0 + (c.vy / 2.2) * k + 380 * u * u;
+            fxg.save(); fxg.globalAlpha = Math.max(0, Math.min(1, 1.8 - u * 0.75)); fxg.translate(x, y); fxg.rotate(c.rot + c.vr * u); fxg.scale(1, Math.abs(Math.cos(u * 9 + c.ph)) * 0.8 + 0.2); fxg.fillStyle = c.col; fxg.fillRect(-c.w / 2, -c.h / 2, c.w, c.h); fxg.restore(); } }
+      }
+      window.addEventListener("hf-seek", (e) => drawFx(e.detail.time));
+      function build() {
+        const tl = gsap.timeline({ paused: true });
+        // titre : entrée 5 images (.9 → 1.06 → 1), tenue +2 %/s, sortie 5 images
+        const title = (sel, tIn, tOut) => {
+          tl.fromTo(sel, { autoAlpha: 0.5, scale: 0.9 }, { autoAlpha: 1, scale: 1.06, duration: 2 * F, ease: "power1.out", immediateRender: false }, tIn);
+          tl.to(sel, { scale: 1.0, duration: 2 * F, ease: "power1.inOut" }, tIn + 2 * F);
+          tl.to(sel, { scale: 1 + 0.02 * (tOut - tIn), duration: Math.max(F, tOut - tIn - 9 * F), ease: "none" }, tIn + 4 * F);
+          tl.to(sel, { autoAlpha: 0, duration: 5 * F, ease: "power1.in" }, tOut - 5 * F);
+        };
+        const cur = [0, 0, 0, 0, 0];
+        const score = (p, pts, at) => {
+          tl.set(`#hp${p}v${cur[p]}`, { opacity: 0 }, at); tl.set(`#hp${p}v${pts}`, { opacity: 1 }, at); cur[p] = pts;
+          tl.to(`#hp${p}`, { scale: 1.35, backgroundColor: "rgba(252,197,46,0.9)", duration: 2 * F }, at);
+          tl.to(`#hp${p}`, { scale: 1, backgroundColor: "rgba(0,0,0,0.78)", duration: 8 * F, ease: "back.out(3)" }, at + 2 * F);
+        };
+__TIMELINE__
+        window.__timelines = window.__timelines || {};
+        window.__timelines["main"] = tl;
+      }
+      Promise.all([document.fonts.load('400 150px "Anton"'), document.fonts.load('800 64px "Montserrat"')]).then(() => document.fonts.ready).then(build);
+    </script>
+  </body>
+</html>
